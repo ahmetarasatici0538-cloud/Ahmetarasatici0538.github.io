@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+  <meta name="theme-color" content="#070914">
+  <title>Neon Kaçış 3D</title>
+
+  <!--
+  ADSENSE ONAYINDAN SONRA:
+
+  Aşağıdaki kodu yorumdan çıkar.
+  ca-pub kısmını gerçek yayıncı kimliğinle değiştir.
+
+  <script async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+    crossorigin="anonymous">
+  </script>
+  -->
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #070914;
+      color: white;
+      font-family: Arial, sans-serif;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    #hud {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .box {
+      min-width: 105px;
+      padding: 9px 12px;
+      border: 1px solid #ffffff2c;
+      border-radius: 14px;
+      background: #0a0f21d9;
+      font-size: 12px;
+      color: #aeb7d6;
+    }
+
+    .box b {
+      display: block;
+      margin-top: 2px;
+      color: white;
+      font-size: 22px;
+    }
+
+    #pause {
+      pointer-events: auto;
+      width: 50px;
+      border: 1px solid #ffffff2c;
+      border-radius: 14px;
+      background: #0a0f21d9;
+      color: white;
+      font-size: 22px;
+    }
+
+    #controls {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 20px;
+      z-index: 8;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .control {
+      width: 88px;
+      height: 68px;
+      border: 1px solid #ffffff45;
+      border-radius: 18px;
+      background: #09101fc9;
+      color: white;
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    .control:active {
+      transform: scale(0.94);
+      background: #22dff13a;
+    }
+
+    .screen {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: #04060fb8;
+      backdrop-filter: blur(6px);
+    }
+
+    .card {
+      width: min(500px, 100%);
+      padding: 25px;
+      border: 1px solid #ffffff2c;
+      border-radius: 24px;
+      background: #080c1cf2;
+      text-align: center;
+      box-shadow: 0 30px 90px #0009;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 10vw, 64px);
+      line-height: 0.95;
+      letter-spacing: -2px;
+    }
+
+    .neon {
+      color: #3ef2ff;
+      text-shadow: 0 0 25px #3ef2ff77;
+    }
+
+    p {
+      color: #aeb7d6;
+      line-height: 1.5;
+    }
+
+    .info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 18px 0;
+    }
+
+    .info div {
+      padding: 12px 6px;
+      border-radius: 14px;
+      background: #ffffff0e;
+      color: #b8c2df;
+      font-size: 12px;
+    }
+
+    .info b {
+      display: block;
+      margin-bottom: 4px;
+      color: white;
+      font-size: 22px;
+    }
+
+    .main {
+      width: 100%;
+      min-height: 54px;
+      border: 0;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #2be7ff, #6c5cff);
+      color: #050711;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .result {
+      margin: 18px 0;
+      padding: 14px;
+      border-radius: 16px;
+      background: #ffffff0e;
+      color: #aeb7d6;
+    }
+
+    .result b {
+      display: block;
+      color: white;
+      font-size: 32px;
+    }
+
+    .links {
+      margin-top: 15px;
+      font-size: 12px;
+    }
+
+    .links a {
+      color: #d9e7ff;
+    }
+
+    @media (min-width: 850px) and (pointer: fine) {
+      #controls {
+        opacity: 0.65;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main id="game"></main>
+
+  <section id="hud" class="hidden">
+    <div class="top">
+
+      <div class="box">
+        PUAN
+        <b id="score">0</b>
+      </div>
+
+      <button id="pause" aria-label="Duraklat">
+        Ⅱ
+      </button>
+
+      <div class="box">
+        REKOR
+        <b id="best">0</b>
+      </div>
+
+    </div>
+  </section>
+
+  <div id="controls" class="hidden">
+    <button id="left" class="control">◀️</button>
+    <button id="right" class="control">▶️</button>
+  </div>
+
+  <section id="startScreen" class="screen">
+    <div class="card">
+
+      <h1>
+        <span class="neon">NEON</span>
+        <br>
+        KAÇIŞ 3D
+      </h1>
+
+      <p>
+        Engellerden kaç, enerji halkalarını topla ve
+        giderek hızlanan neon yolda rekor kır.
+      </p>
+
+      <div class="info">
+        <div>
+          <b>◀️ ▶️</b>
+          Tuşlarla
+        </div>
+
+        <div>
+          <b>↔️</b>
+          Kaydırarak
+        </div>
+
+        <div>
+          <b>A D</b>
+          Klavyeyle
+        </div>
+      </div>
+
+      <button id="start" class="main">
+        OYUNU BAŞLAT
+      </button>
+
+      <div class="links">
+        <a href="gizlilik.html">
+          Gizlilik Politikası
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="overScreen" class="screen hidden">
+    <div class="card">
+
+      <h1>
+        OYUN
+        <br>
+        <span class="neon">BİTTİ</span>
+      </h1>
+
+      <div class="result">
+        Puanın
+        <b id="finalScore">0</b>
+      </div>
+
+      <div class="result">
+        Rekor
+        <b id="finalBest">0</b>
+      </div>
+
+      <button id="restart" class="main">
+        TEKRAR OYNA
+      </button>
+
+    </div>
+  </section>
+
+  <section id="pauseScreen" class="screen hidden">
+    <div class="card">
+
+      <h1>
+        OYUN
+        <br>
+        <span class="neon">DURDU</span>
+      </h1>
+
+      <p>
+        Kozmos bekliyor. Şimdilik bir yere kaçmadı.
+      </p>
+
+      <button id="resume" class="main">
+        DEVAM ET
+      </button>
+
+    </div>
+  </section>
+
+  <!--
+  ADSENSE REKLAM ALANI
+
+  AdSense hesabın onaylandıktan sonra bu bölümü yorumdan çıkar.
+  X yazan yerleri AdSense'in verdiği bilgilerle değiştir.
+
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="XXXXXXXXXX"
+       data-ad-format="auto"
+       data-full-width-responsive="true">
+  </ins>
+
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+  -->
+
+  <script type="module">
+
+    import * as THREE from
+      "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
+
+    const $ = id => document.getElementById(id);
+
+    const root = $("game");
+    const hud = $("hud");
+    const controls = $("controls");
+
+    const startScreen = $("startScreen");
+    const overScreen = $("overScreen");
+    const pauseScreen = $("pauseScreen");
+
+    const scoreEl = $("score");
+    const bestEl = $("best");
+    const finalScore = $("finalScore");
+    const finalBest = $("finalBest");
+
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+
+    renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio, 2)
+    );
+
+    renderer.setSize(
+      window.innerWidth,
+      window.innerHeight
+    );
+
+    renderer.shadowMap.enabled = true;
+
+    root.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+
+    scene.background = new THREE.Color(0x070914);
+
+    scene.fog = new THREE.Fog(
+      0x070914,
+      20,
+      90
+    );
+
+    const camera = new THREE.PerspectiveCamera(
+      62,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      160
+    );
+
+    camera.position.set(
+      0,
+      6.3,
+      10.5
+    );
+
+    camera.lookAt(
+      0,
+      1,
+      -15
+    );
+
+    const skyLight = new THREE.HemisphereLight(
+      0x67d6ff,
+      0x090012,
+      1.8
+    );
+
+    scene.add(skyLight);
+
+    const sun = new THREE.DirectionalLight(
+      0xffffff,
+      1.3
+    );
+
+    sun.position.set(
+      4,
+      12,
+      7
+    );
+
+    sun.castShadow = true;
+
+    scene.add(sun);
+
+    const pinkLight = new THREE.PointLight(
+      0xff247e,
+      24,
+      40
+    );
+
+    pinkLight.position.set(
+      -8,
+      5,
+      -10
+    );
+
+    scene.add(pinkLight);
+
+    const cyanLight = new THREE.PointLight(
+      0x24eaff,
+      26,
+      45
+    );
+
+    cyanLight.position.set(
+      8,
+      4,
+      -25
+    );
+
+    scene.add(cyanLight);
+
+    const world = new THREE.Group();
+
+    scene.add(world);
+
+    const lanes = [
+      -3.2,
+      0,
+      3.2
+    ];
+
+    const playerZ = 3.2;
+
+    let lane = 1;
+    let targetX = 0;
+    let score = 0;
+
+    let best = Number(
+      localStorage.getItem("neonBest") || 0
+    );
+
+    let speed = 19;
+    let running = false;
+    let paused = false;
+    let spawnTime = 0;
+    let ringTime = 0;
+    let elapsed = 0;
+    let last = performance.now();
+    let touchX = null;
+
+    const floors = [];
+    const obstacles = [];
+    const rings = [];
+    const stars = [];
+
+    bestEl.textContent = best;
+
+    function createGridTexture() {
+
+      const canvas =
+        document.createElement("canvas");
+
+      const context =
+        canvas.getContext("2d");
+
+      canvas.width = 512;
+      canvas.height = 512;
+
+      context.fillStyle = "#080b17";
+
+      context.fillRect(
+        0,
+        0,
+        512,
+        512
+      );
+
+      context.strokeStyle =
+        "rgba(52,236,255,.3)";
+
+      context.lineWidth = 3;
+
+      for (
+        let position = 0;
+        position <= 512;
+        position += 64
+      ) {
+
+        context.beginPath();
+
+        context.moveTo(
+          position,
+          0
+        );
+
+        context.lineTo(
+          position,
+          512
+        );
+
+        context.stroke();
+
+        context.beginPath();
+
+        context.moveTo(
+          0,
+          position
+        );
+
+        context.lineTo(
+          512,
+          position
+        );
+
+        context.stroke();
+      }
+
+      const texture =
+        new THREE.CanvasTexture(canvas);
+
+      texture.wrapS =
+        THREE.RepeatWrapping;
+
+      texture.wrapT =
+        THREE.RepeatWrapping;
+
+      texture.repeat.set(
+        1.2,
+        2.7
+      );
+
+      return texture;
+    }
+
+    const floorMaterial =
+      new THREE.MeshStandardMaterial({
+
+        map: createGridTexture(),
+        color: 0x193552,
+        emissive: 0x06152a,
+        emissiveIntensity: 1.3,
+        roughness: 0.68
+
+      });
+
+    for (
+      let index = 0;
+      index < 10;
+      index++
+    ) {
+
+      const floor =
+        new THREE.Mesh(
+
+          new THREE.BoxGeometry(
+            12,
+            0.22,
+            12
+          ),
+
+          floorMaterial
+        );
+
+      floor.position.set(
+        0,
+        -0.2,
+        -index * 12 + 6
+      );
+
+      floor.receiveShadow = true;
+
+      world.add(floor);
+
+      floors.push(floor);
+    }
+
+    const railMaterial =
+      new THREE.MeshStandardMaterial({
+
+        color: 0x54ebff,
+        emissive: 0x21d9ff,
+        emissiveIntensity: 3.5
+
+      });
+
+    for (const railX of [-6.15, 6.15]) {
+
+      const rail =
+        new THREE.Mesh(
+
+          new THREE.BoxGeometry(
+            0.14,
+            0.15,
+            125
+          ),
+
+          railMaterial
+        );
+
+      rail.position.set(
+        railX,
+        0.06,
+        -49
+      );
+
+      world.add(rail);
+    }
+
+    const player =
+      new THREE.Group();
+
+    const playerBody =
+      new THREE.Mesh(
+
+        new THREE.CapsuleGeometry(
+          0.68,
+          1.15,
+          8,
+          16
+        ),
+
+        new THREE.MeshStandardMaterial({
+
+          color: 0x32d9ff,
+          emissive: 0x083e70,
+          emissiveIntensity: 1.6,
+          metalness: 0.72,
+          roughness: 0.2
+
+        })
+      );
+
+    playerBody.rotation.x =
+      Math.PI / 2;
+
+    playerBody.position.y =
+      1.05;
+
+    playerBody.castShadow =
+      true;
+
+    player.add(playerBody);
+
+    const nose =
+      new THREE.Mesh(
+
+        new THREE.ConeGeometry(
+          0.58,
+          1.25,
+          16
+        ),
+
+        new THREE.MeshStandardMaterial({
+
+          color: 0xffffff,
+          emissive: 0x46dfff,
+          emissiveIntensity: 1.2
+
+        })
+      );
+
+    nose.rotation.x =
+      -Math.PI / 2;
+
+    nose.position.set(
+      0,
+      1.05,
+      -1.18
+    );
+
+    player.add(nose);
+
+    for (const side of [-1, 1]) {
+
+      const wing =
+        new THREE.Mesh(
+
+          new THREE.BoxGeometry(
+            1.45,
+            0.13,
+            0.72
+          ),
+
+          new THREE.MeshStandardMaterial({
+
+            color: 0xff367d,
+            emissive: 0xa4003f,
+            emissiveIntensity: 2
+
+          })
+        );
+
+      wing.position.set(
+        side * 0.72,
+        0.86,
+        0.15
+      );
+
+      player.add(wing);
+    }
+
+    player.position.set(
+      0,
+      0,
+      playerZ
+    );
+
+    world.add(player);
+
+    const starGeometry =
+      new THREE.SphereGeometry(
+        0.045,
+        5,
+        5
+      );
+
+    const starMaterial =
+      new THREE.MeshBasicMaterial({
+
+        color: 0x9fdfff
+
+      });
+
+    for (
+      let index = 0;
+      index < 150;
+      index++
+    ) {
+
+      const star =
+        new THREE.Mesh(
+
+          starGeometry,
+          starMaterial
+        );
+
+      star.position.set(
+
+        THREE.MathUtils.randFloatSpread(42),
+
+        THREE.MathUtils.randFloat(
+          2,
+          18
+        ),
+
+        THREE.MathUtils.randFloat(
+          -110,
+          8
+        )
+      );
+
+      world.add(star);
+
+      stars.push(star);
+    }
+
+    function createObstacle(
+      selectedLane,
+      zPosition = -80
+    ) {
+
+      const height =
+        THREE.MathUtils.randFloat(
+          1.7,
+          3.3
+        );
+
+      const group =
+        new THREE.Group();
+
+      const block =
+        new THREE.Mesh(
+
+          new THREE.BoxGeometry(
+            2.25,
+            height,
+            2.1
+          ),
+
+          new THREE.MeshStandardMaterial({
+
+            color: 0xff245f,
+            emissive: 0x63001f,
+            emissiveIntensity: 2.2,
+            metalness: 0.45
+
+          })
+        );
+
+      block.position.y =
+        height / 2;
+
+      block.castShadow =
+        true;
+
+      group.add(block);
+
+      group.position.set(
+
+        lanes[selectedLane],
+        0,
+        zPosition
+      );
+
+      world.add(group);
+
+      obstacles.push(group);
+    }
+
+    function createRing(
+      selectedLane,
+      zPosition = -86
+    ) {
+
+      const ring =
+        new THREE.Mesh(
+
+          new THREE.TorusGeometry(
+            0.66,
+            0.16,
+            10,
+            28
+          ),
+
+          new THREE.MeshStandardMaterial({
+
+            color: 0xfff36a,
+            emissive: 0xffa500,
+            emissiveIntensity: 3.5
+
+          })
+        );
+
+      ring.position.set(
+
+        lanes[selectedLane],
+        1.25,
+        zPosition
+      );
+
+      ring.rotation.x =
+        Math.PI / 2;
+
+      world.add(ring);
+
+      rings.push(ring);
+    }
+
+    function clearItems() {
+
+      for (
+        const item of [
+          ...obstacles,
+          ...rings
+        ]
+      ) {
+
+        world.remove(item);
+      }
+
+      obstacles.length = 0;
+      rings.length = 0;
+    }
+
+    function resetGame() {
+
+      clearItems();
+
+      lane = 1;
+      targetX = 0;
+
+      player.position.x = 0;
+
+      score = 0;
+      speed = 19;
+      spawnTime = 0.7;
+      ringTime = 1.3;
+      elapsed = 0;
+
+      scoreEl.textContent = "0";
+      bestEl.textContent = best;
+
+      last = performance.now();
+    }
+
+    function startGame() {
+
+      resetGame();
+
+      startScreen.classList.add(
+        "hidden"
+      );
+
+      overScreen.classList.add(
+        "hidden"
+      );
+
+      pauseScreen.classList.add(
+        "hidden"
+      );
+
+      hud.classList.remove(
+        "hidden"
+      );
+
+      controls.classList.remove(
+        "hidden"
+      );
+
+      running = true;
+      paused = false;
+    }
+
+    function endGame() {
+
+      running = false;
+
+      const currentScore =
+        Math.floor(score);
+
+      if (currentScore > best) {
+
+        best = currentScore;
+
+        localStorage.setItem(
+          "neonBest",
+          best
+        );
+      }
+
+      finalScore.textContent =
+        currentScore;
+
+      finalBest.textContent =
+        best;
+
+      bestEl.textContent =
+        best;
+
+      overScreen.classList.remove(
+        "hidden"
+      );
+
+      controls.classList.add(
+        "hidden"
+      );
+
+      navigator.vibrate?.([
+        80,
+        40,
+        120
+      ]);
+    }
+
+    function togglePause(
+      resume = false
+    ) {
+
+      if (!running) {
+        return;
+      }
+
+      paused =
+        resume ? false : !paused;
+
+      pauseScreen.classList.toggle(
+        "hidden",
+        !paused
+      );
+
+      controls.classList.toggle(
+        "hidden",
+        paused
+      );
+
+      last = performance.now();
+    }
+
+    function movePlayer(direction) {
+
+      if (!running || paused) {
+        return;
+      }
+
+      lane =
+        THREE.MathUtils.clamp(
+
+          lane + direction,
+          0,
+          2
+        );
+
+      targetX =
+        lanes[lane];
+
+      navigator.vibrate?.(12);
+    }
+
+    function updateGame(deltaTime) {
+
+      elapsed += deltaTime;
+
+      speed = Math.min(
+        38,
+        19 + elapsed * 0.42
+      );
+
+      score +=
+        deltaTime *
+        speed *
+        0.42;
+
+      scoreEl.textContent =
+        Math.floor(score);
+
+      const movement =
+        speed * deltaTime;
+
+      for (const floor of floors) {
+
+        floor.position.z +=
+          movement;
+
+        if (floor.position.z > 12) {
+
+          floor.position.z -= 120;
+        }
+      }
+
+      for (const star of stars) {
+
+        star.position.z +=
+          movement * 1.35;
+
+        if (star.position.z > 10) {
+
+          star.position.z = -110;
+        }
+      }
+
+      player.position.x =
+        THREE.MathUtils.damp(
+
+          player.position.x,
+          targetX,
+          10,
+          deltaTime
+        );
+
+      player.position.y =
+        Math.sin(elapsed * 7) *
+        0.055;
+
+      player.rotation.z =
+        THREE.MathUtils.damp(
+
+          player.rotation.z,
+
+          (
+            targetX -
+            player.position.x
+          ) * -0.12,
+
+          7,
+          deltaTime
+        );
+
+      spawnTime -= deltaTime;
+
+      if (spawnTime <= 0) {
+
+        const firstLane =
+          Math.floor(
+            Math.random() * 3
+          );
+
+        createObstacle(firstLane);
+
+        if (
+          speed > 24 &&
+          Math.random() < 0.27
+        ) {
+
+          let secondLane;
+
+          do {
+
+            secondLane =
+              Math.floor(
+                Math.random() * 3
+              );
+
+          } while (
+            secondLane === firstLane
+          );
+
+          createObstacle(
+            secondLane,
+            -82
+          );
+        }
+
+        spawnTime =
+
+          THREE.MathUtils.randFloat(
+            0.82,
+            1.28
+          ) *
+
+          Math.max(
+            0.66,
+            24 / speed
+          );
+      }
+
+      ringTime -= deltaTime;
+
+      if (ringTime <= 0) {
+
+        createRing(
+          Math.floor(
+            Math.random() * 3
+          )
+        );
+
+        ringTime =
+          THREE.MathUtils.randFloat(
+            1.05,
+            1.65
+          );
+      }
+
+      for (
+        let index =
+          obstacles.length - 1;
+
+        index >= 0;
+
+        index--
+      ) {
+
+        const obstacle =
+          obstacles[index];
+
+        obstacle.position.z +=
+          movement;
+
+        obstacle.rotation.y +=
+          deltaTime * 0.6;
+
+        const horizontalDistance =
+          Math.abs(
+
+            obstacle.position.x -
+            player.position.x
+          );
+
+        const forwardDistance =
+          Math.abs(
+
+            obstacle.position.z -
+            playerZ
+          );
+
+        if (
+          horizontalDistance < 1.25 &&
+          forwardDistance < 1.35
+        ) {
+
+          endGame();
+
+          return;
+        }
+
+        if (
+          obstacle.position.z > 12
+        ) {
+
+          world.remove(obstacle);
+
+          obstacles.splice(
+            index,
+            1
+          );
+        }
+      }
+
+      for (
+        let index =
+          rings.length - 1;
+
+        index >= 0;
+
+        index--
+      ) {
+
+        const energyRing =
+          rings[index];
+
+        energyRing.position.z +=
+          movement;
+
+        energyRing.rotation.z +=
+          deltaTime * 2.4;
+
+        const horizontalDistance =
+          Math.abs(
+
+            energyRing.position.x -
+            player.position.x
+          );
+
+        const forwardDistance =
+          Math.abs(
+
+            energyRing.position.z -
+            playerZ
+          );
+
+        if (
+          horizontalDistance < 1.1 &&
+          forwardDistance < 1.15
+        ) {
+
+          score += 10;
+
+          world.remove(
+            energyRing
+          );
+
+          rings.splice(
+            index,
+            1
+          );
+
+          navigator.vibrate?.(25);
+
+          continue;
+        }
+
+        if (
+          energyRing.position.z > 12
+        ) {
+
+          world.remove(
+            energyRing
+          );
+
+          rings.splice(
+            index,
+            1
+          );
+        }
+      }
+
+      camera.position.x =
+        THREE.MathUtils.damp(
+
+          camera.position.x,
+
+          player.position.x * 0.16,
+
+          3,
+          deltaTime
+        );
+
+      camera.lookAt(
+
+        player.position.x * 0.12,
+        1,
+        -15
+      );
+    }
+
+    function gameLoop(time) {
+
+      requestAnimationFrame(
+        gameLoop
+      );
+
+      const deltaTime =
+        Math.min(
+
+          (time - last) / 1000,
+          0.05
+        );
+
+      last = time;
+
+      if (
+        running &&
+        !paused
+      ) {
+
+        updateGame(deltaTime);
+      }
+
+      renderer.render(
+        scene,
+        camera
+      );
+    }
+
+    $("start").onclick =
+      startGame;
+
+    $("restart").onclick =
+      startGame;
+
+    $("pause").onclick =
+      () => togglePause();
+
+    $("resume").onclick =
+      () => togglePause(true);
+
+    $("left").onpointerdown =
+      () => movePlayer(-1);
+
+    $("right").onpointerdown =
+      () => movePlayer(1);
+
+    window.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          [
+            "ArrowLeft",
+            "a",
+            "A"
+          ].includes(event.key)
+        ) {
+
+          movePlayer(-1);
+        }
+
+        if (
+          [
+            "ArrowRight",
+            "d",
+            "D"
+          ].includes(event.key)
+        ) {
+
+          movePlayer(1);
+        }
+
+        if (
+          [
+            "Escape",
+            "p",
+            "P"
+          ].includes(event.key)
+        ) {
+
+          togglePause();
+        }
+      }
+    );
+
+    window.addEventListener(
+      "touchstart",
+      event => {
+
+        touchX =
+          event.changedTouches[0]
+            .clientX;
+
+      },
+      {
+        passive: true
+      }
+    );
+
+    window.addEventListener(
+      "touchend",
+      event => {
+
+        const distance =
+
+          event.changedTouches[0]
+            .clientX -
+
+          touchX;
+
+        if (
+          Math.abs(distance) > 34
+        ) {
+
+          movePlayer(
+            distance > 0 ? 1 : -1
+          );
+        }
+      },
+      {
+        passive: true
+      }
+    );
+
+    window.addEventListener(
+      "resize",
+      () => {
+
+        camera.aspect =
+
+          window.innerWidth /
+          window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+
+          window.innerWidth,
+          window.innerHeight
+        );
+      }
+    );
+
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+
+        if (
+          document.hidden &&
+          running &&
+          !paused
+        ) {
+
+          togglePause();
+        }
+      }
+    );
+
+    gameLoop(
+      performance.now()
+    );
+
+  </script>
+</body>
+</html>
